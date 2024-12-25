@@ -1,7 +1,10 @@
 package br.com.darlan.webfluxcourse.controller;
 
+import br.com.darlan.webfluxcourse.controller.model.request.UserRequest;
+import br.com.darlan.webfluxcourse.controller.model.response.UserResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public interface UserController {
