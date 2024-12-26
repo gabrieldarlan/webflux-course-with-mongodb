@@ -1,4 +1,4 @@
-package br.com.darlan.webfluxcourse.controller.model.response;
+package br.com.darlan.webfluxcourse.model.response;
 
 public record UserResponse(
         String id,

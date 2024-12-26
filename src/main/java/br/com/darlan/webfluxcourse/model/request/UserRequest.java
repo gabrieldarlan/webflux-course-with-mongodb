@@ -1,4 +1,4 @@
-package br.com.darlan.webfluxcourse.controller.model.request;
+package br.com.darlan.webfluxcourse.model.request;
 
 public record UserRequest(
         String name,
