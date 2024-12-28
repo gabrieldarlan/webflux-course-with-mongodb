@@ -1,10 +1,12 @@
 package br.com.darlan.webfluxcourse.controller.exceptions;
 
+import lombok.val;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.support.WebExchangeBindException;
 import reactor.core.publisher.Mono;
 
 import static java.time.LocalDateTime.now;
@@ -32,6 +34,16 @@ public class ControllerExceptionHandler {
 
     }
 
+    @ExceptionHandler(WebExchangeBindException.class)
+    public ResponseEntity<Mono<ValidationError>> validationError(WebExchangeBindException ex,
+                                                                 ServerHttpRequest request) {
+
+        val error = new ValidationError(now(), request.getPath().toString(), BAD_REQUEST.value(), "Validation Error", "Error on validation attributes");
+
+        ex.getBindingResult().getFieldErrors().forEach(x -> error.addError(x.getField(), x.getDefaultMessage()));
+
+        return ResponseEntity.status(BAD_REQUEST).body(Mono.just(error));
+    }
 
     private String verifyDupKey(String message) {
         if (message.contains("email dup key"))
