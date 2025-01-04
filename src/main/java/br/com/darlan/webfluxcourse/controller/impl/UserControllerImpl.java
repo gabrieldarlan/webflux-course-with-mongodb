@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import static org.springframework.http.HttpStatus.OK;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(value = "/users")
@@ -28,7 +30,7 @@ public class UserControllerImpl implements UserController {
 
     @Override
     public ResponseEntity<Mono<UserResponse>> findById(String id) {
-        return ResponseEntity.status(HttpStatus.OK).body(service.findById(id).map(mapper::toResponse));
+        return ResponseEntity.status(OK).body(service.findById(id).map(mapper::toResponse));
     }
 
     @Override
@@ -40,7 +42,10 @@ public class UserControllerImpl implements UserController {
 
     @Override
     public ResponseEntity<Mono<UserResponse>> update(String id, UserRequest request) {
-        return null;
+        return ResponseEntity
+                .status(OK)
+                .body(service.update(id, request)
+                        .map(mapper::toResponse));
     }
 
     @Override
