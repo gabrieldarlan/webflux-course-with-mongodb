@@ -19,6 +19,7 @@ import reactor.core.publisher.Mono;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.web.reactive.function.BodyInserters.fromValue;
 
@@ -57,6 +58,30 @@ class UserControllerImplTest {
 
         verify(service).save(any(UserRequest.class));
     }
+
+    @Test
+    @DisplayName("Test endpoint with bad request")
+    void testSaveWithBadRequest() {
+        // Arrange
+        final UserRequest request = new UserRequest(" name", "name@email.com", "123");
+
+        // Act
+        webTestClient.post().uri(URI)
+                .contentType(APPLICATION_JSON)
+                .body(fromValue(request))
+                .exchange()
+                // Assert
+                .expectStatus()
+                .isBadRequest()
+                .expectBody()
+                .jsonPath("$.path").isEqualTo(URI)
+                .jsonPath("$.status").isEqualTo(BAD_REQUEST.value())
+                .jsonPath("$.error").isEqualTo("Validation Error")
+                .jsonPath("$.message").isEqualTo("Error on validation attributes")
+                .jsonPath("$.errors[0].fieldName").isEqualTo("name")
+                .jsonPath("$.errors[0].message").isEqualTo("field cannot contain spaces at the beginning or end");
+    }
+
 
     @Test
     void findById() {
