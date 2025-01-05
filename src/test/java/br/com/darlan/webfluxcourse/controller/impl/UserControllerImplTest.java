@@ -55,7 +55,6 @@ class UserControllerImplTest {
                 .expectStatus()
                 .isCreated();
 
-
         verify(service).save(any(UserRequest.class));
     }
 
