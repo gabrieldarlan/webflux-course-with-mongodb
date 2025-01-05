@@ -30,7 +30,7 @@ class UserServiceTest {
     private UserService service;
 
     @Test
-    void save() {
+    void testSave() {
         // Arrange
         UserRequest request = new UserRequest("gabriel", "gabriel@gmail.com", "123456");
         User entity = User.builder().build();
@@ -43,10 +43,31 @@ class UserServiceTest {
 
         // Assert
         StepVerifier.create(result)
-                .expectNextMatches(Objects::nonNull)
+                .expectNextMatches(user -> user.getClass() == User.class)
                 .expectComplete()
                 .verify();
 
         verify(repository, times(1)).save(any(User.class));
+    }
+
+    @Test
+    void testFindById() {
+        // Arrange
+        when(repository.findById(anyString())).thenReturn(Mono.just(User.builder()
+                .id("123")
+                .build()));
+
+        // Act
+        Mono<User> result = service.findById("123");
+
+        // Assert
+        StepVerifier.create(result)
+                .expectNextMatches(user -> user.getClass() == User.class
+                        && Objects.equals(user.getId(), "123"))
+                .expectComplete()
+                .verify();
+
+        verify(repository, times(1)).findById(anyString());
+
     }
 }
