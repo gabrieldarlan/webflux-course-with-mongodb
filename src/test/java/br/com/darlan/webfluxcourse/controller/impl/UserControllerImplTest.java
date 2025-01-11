@@ -38,6 +38,7 @@ class UserControllerImplTest {
     public static final String NAME = "name";
     public static final String EMAIL = "name@email.com";
     public static final String PASSWORD = "123";
+    public static final UserRequest REQUEST = new UserRequest(NAME, EMAIL, PASSWORD);
     @Autowired
     private WebTestClient webTestClient;
 
@@ -55,7 +56,7 @@ class UserControllerImplTest {
     @DisplayName("Test endpoint with success")
     void testSaveWithSuccess() {
         // Arrange
-        final UserRequest request = new UserRequest(NAME, EMAIL, PASSWORD);
+        final UserRequest request = REQUEST;
         when(service.save(any(UserRequest.class))).thenReturn(Mono.just(User.builder().build()));
 
         webTestClient.post().uri(URI)
@@ -147,12 +148,34 @@ class UserControllerImplTest {
     }
 
     @Test
-    void update() {
+    @DisplayName("Test update user with success")
+    void testUpdateWithSuccess() {
+        UserResponse userResponse = new UserResponse(ID, NAME, EMAIL, PASSWORD);
+        var request = REQUEST;
 
-        
+        when(service.update(ID, REQUEST)).thenReturn(Mono.just(User.builder().build()));
+        when(mapper.toResponse(any(User.class))).thenReturn(userResponse);
+
+        webTestClient.patch()
+                .uri(URI + "/".concat(ID))
+                .body(fromValue(request))
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.name").isEqualTo(userResponse.name());
+
+
     }
 
     @Test
     void delete() {
+
+        when(service.delete(anyString())).thenReturn(Mono.just(User.builder().build()));
+
+        webTestClient.delete()
+                .uri(URI.concat("/").concat(ID))
+                .exchange()
+                .expectStatus().isOk();
+
     }
 }
