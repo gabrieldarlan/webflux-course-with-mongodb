@@ -5,6 +5,7 @@ import br.com.darlan.webfluxcourse.mapper.UserMapper;
 import br.com.darlan.webfluxcourse.model.request.UserRequest;
 import br.com.darlan.webfluxcourse.model.response.UserResponse;
 import br.com.darlan.webfluxcourse.service.UserService;
+import br.com.darlan.webfluxcourse.service.exception.ObjectNotFoundException;
 import com.mongodb.reactivestreams.client.MongoClient;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,6 +18,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Mono;
 
+import static java.lang.String.format;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
@@ -98,7 +100,7 @@ class UserControllerImplTest {
         when(mapper.toResponse(any(User.class))).thenReturn(userResponse);
 
         webTestClient.get()
-                .uri(URI + "/" + "123456")
+                .uri(URI + "/".concat(ID))
                 .exchange()
                 .expectStatus().isOk()
                 .expectBody()
@@ -108,6 +110,21 @@ class UserControllerImplTest {
                 .jsonPath("$.password").isEqualTo(userResponse.password());
 
     }
+
+    @Test
+    @DisplayName("Test find by id with unsuccessful response (not found)")
+    void testFindByIdWithNotFoundReturn() {
+
+        when(service.findById(anyString())).thenThrow(new ObjectNotFoundException(format("Object not found. Id: %s, Type: %s", ID, User.class.getSimpleName())));
+
+        webTestClient.get()
+                .uri(URI + "/".concat(ID))
+                .exchange()
+                .expectStatus().isNotFound()
+                .expectBody()
+                .jsonPath("$.error").isEqualTo("Not Found");
+    }
+
 
     @Test
     void findAll() {
