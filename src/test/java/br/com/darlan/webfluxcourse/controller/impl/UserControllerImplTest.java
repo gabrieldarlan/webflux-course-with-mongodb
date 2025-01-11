@@ -3,6 +3,7 @@ package br.com.darlan.webfluxcourse.controller.impl;
 import br.com.darlan.webfluxcourse.entity.User;
 import br.com.darlan.webfluxcourse.mapper.UserMapper;
 import br.com.darlan.webfluxcourse.model.request.UserRequest;
+import br.com.darlan.webfluxcourse.model.response.UserResponse;
 import br.com.darlan.webfluxcourse.service.UserService;
 import com.mongodb.reactivestreams.client.MongoClient;
 import org.junit.jupiter.api.DisplayName;
@@ -17,6 +18,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Mono;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
@@ -29,6 +31,10 @@ import static org.springframework.web.reactive.function.BodyInserters.fromValue;
 class UserControllerImplTest {
 
     public static final String URI = "/users";
+    public static final String ID = "123456";
+    public static final String NAME = "name";
+    public static final String EMAIL = "name@email.com";
+    public static final String PASSWORD = "123";
     @Autowired
     private WebTestClient webTestClient;
 
@@ -46,7 +52,7 @@ class UserControllerImplTest {
     @DisplayName("Test endpoint with success")
     void testSaveWithSuccess() {
         // Arrange
-        final UserRequest request = new UserRequest("name", "name@email.com", "123");
+        final UserRequest request = new UserRequest(NAME, EMAIL, PASSWORD);
         when(service.save(any(UserRequest.class))).thenReturn(Mono.just(User.builder().build()));
 
         webTestClient.post().uri(URI)
@@ -63,7 +69,7 @@ class UserControllerImplTest {
     @DisplayName("Test endpoint with bad request")
     void testSaveWithBadRequest() {
         // Arrange
-        final UserRequest request = new UserRequest(" name", "name@email.com", "123");
+        final UserRequest request = new UserRequest(NAME.concat(" "), EMAIL, PASSWORD);
 
         // Act
         webTestClient.post().uri(URI)
@@ -78,13 +84,29 @@ class UserControllerImplTest {
                 .jsonPath("$.status").isEqualTo(BAD_REQUEST.value())
                 .jsonPath("$.error").isEqualTo("Validation Error")
                 .jsonPath("$.message").isEqualTo("Error on validation attributes")
-                .jsonPath("$.errors[0].fieldName").isEqualTo("name")
+                .jsonPath("$.errors[0].fieldName").isEqualTo(NAME)
                 .jsonPath("$.errors[0].message").isEqualTo("field cannot contain spaces at the beginning or end");
     }
 
 
     @Test
-    void findById() {
+    @DisplayName("Test find by id with success")
+    void testFindByIdWithSuccess() {
+        UserResponse userResponse = new UserResponse(ID, NAME, EMAIL, PASSWORD);
+
+        when(service.findById(anyString())).thenReturn(Mono.just(User.builder().build()));
+        when(mapper.toResponse(any(User.class))).thenReturn(userResponse);
+
+        webTestClient.get()
+                .uri(URI + "/" + "123456")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.id").isEqualTo("123456")
+                .jsonPath("$.name").isEqualTo(userResponse.name())
+                .jsonPath("$.email").isEqualTo(userResponse.email())
+                .jsonPath("$.password").isEqualTo(userResponse.password());
+
     }
 
     @Test
