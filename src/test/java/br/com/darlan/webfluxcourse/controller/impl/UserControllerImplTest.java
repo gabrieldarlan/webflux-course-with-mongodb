@@ -16,6 +16,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import static java.lang.String.format;
@@ -127,11 +128,28 @@ class UserControllerImplTest {
 
 
     @Test
-    void findAll() {
+    @DisplayName("Test find all with success")
+    void testFindAllWithSuccess() {
+        UserResponse userResponse = new UserResponse(ID, NAME, EMAIL, PASSWORD);
+
+        when(service.findAll()).thenReturn(Flux.just(User.builder().build()));
+        when(mapper.toResponse(any(User.class))).thenReturn(userResponse);
+
+        webTestClient.get()
+                .uri(URI)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$[0].id").isEqualTo(userResponse.id())
+                .jsonPath("$[0].name").isEqualTo(userResponse.name())
+                .jsonPath("$[0].email").isEqualTo(userResponse.email())
+                .jsonPath("$[0].password").isEqualTo(userResponse.password());
     }
 
     @Test
     void update() {
+
+        
     }
 
     @Test
